@@ -6,11 +6,12 @@ def ransac_calc(all_query_points, all_train_points):
         Recebe como parametro os pontos de correspondencia encontrados
     """
 
-    print("Cálculo da Homografia por RANSAC\n")
+    print("Cálculo da Homografia por RANSAC")
     
-    
+    # Obtem a melhor homografia com RANSAC
     best_homography, best_inliers = get_best_homografy(all_query_points, all_train_points)
     
+    # Se encontrou alguma homografia, calcula novamente com todos inliers
     if len(best_inliers) > 0:
         best_query_points = best_inliers[:,:2]
         best_train_points = best_inliers[:,2:]
@@ -85,6 +86,8 @@ def get_best_homografy(all_query_points, all_train_points):
         #     print("Indices já foram analisados")
         # indices.append(rand_idx)
         
+        
+        # Pega os 4 descritores sorteados
         query_points = []
         train_points = []
         for i in range(s):
@@ -94,9 +97,11 @@ def get_best_homografy(all_query_points, all_train_points):
         query_points = np.array((query_points))
         train_points = np.array((train_points))
 
+        # Calcula a homografia com os 4 pontos sorteados
         H = get_homografy(query_points, train_points)
         
         
+        # Calcula quantos inliers foram encontrados
         inliers = []
         for q, t in zip(all_query_points, all_train_points):
             d = geometricDistance(q, t, H)
@@ -109,6 +114,7 @@ def get_best_homografy(all_query_points, all_train_points):
             
         inliers = np.array(inliers)
 
+        # Se aumentou a quantidade de inliers desde a ultima iteração
         if len(inliers) > len(best_inliers):
             best_inliers = inliers
             best_homography = H
@@ -143,11 +149,6 @@ def get_best_homografy(all_query_points, all_train_points):
     print(f"N final: {N}")
     print("Menor d: ", menor)
 
-    """
-        Rodar a solução usando os best_inliers
-        No caso da homografia, estimar a melhor solução usando esses inliers, ou seja,
-        achar a homografia com os best_inliers em vez de somente 4 pontos
-    """
     return best_homography, best_inliers
 
 
@@ -158,17 +159,16 @@ def get_homografy(query_points, train_points):
     
     if(len(query_points) < 4 or len(train_points) < 4):
         print("Informe no minimo 4 pontos...")
-    # TODO: Testar retornando o T aqui pra nao precisar calcular novamente
-    # Normalization of query and train points
+    
+    # Normaliza os pontos e obtem a matriz de transformação
     normalized_query, T1 = normalize(query_points)
     normalized_train, T2 = normalize(train_points)
     
-    # normalized_query = query_points
-    # normalized_train = train_points
-
+    # Distância média deve ser raiz de 2
     # print("Distancia média query: ", np.mean( np.linalg.norm(normalized_query, axis=1)))
     # print("Distancia média train: ", np.mean( np.linalg.norm(normalized_train, axis=1)))
 
+    # Criar a matriz de correspondências
     correspondences = []
     for i in range(len(query_points)):
         c = np.hstack((normalized_query[i], normalized_train[i]))

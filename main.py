@@ -15,14 +15,22 @@ def create_output_dir(name):
         os.makedirs("output/"+name)
 
 def main():
-    test_image_folder = sys.argv[1]
-    alg = sys.argv[2]
+    """
+        Execução do programa com ORB
+            python main.py T2 orb 
+        Execução do programa com SIFT
+            python main.py T2 sift
+    """
+    test_image_folder = sys.argv[1] # diretório onde estão as imagens de teste (T1, T2, etc)
+    alg = sys.argv[2] # algoritmo que será usado para detectar as features: orb ou sift
     
-    create_output_dir(test_image_folder)
+    # cria o diretório de saida onde fica as imagens das correspondencias e panoramica
+    create_output_dir(test_image_folder) 
    
     img_input1 = cv.imread("input/"+test_image_folder+"/img1.jpg")
     img_input2 = cv.imread("input/"+test_image_folder+"/img2.jpg")
-        
+    
+    # Encontra as correspondencias    
     points_query, points_train, matches = matching(img_input1, img_input2, alg, test_image_folder)
     
     print("----------------- Info -------------------")
@@ -35,11 +43,13 @@ def main():
     print("HEIGHT: ", img_input2.shape[0])
     print("WIDTH: ", img_input2.shape[1])
     
-    print(f"Correspondências: {len(points_query)}")
+    print(f"Correspondências: {len(matches)}")
     print("------------------------------------------")
     
+    # Calcular a homografia usando RANSAC
     H = ransac_calc(points_query, points_train)
     
+    # salva a homografia em um arquivo txt no diretório de saida (output)
     np.savetxt("output/"+test_image_folder+"/homografy.txt", H)
     
     # Homografia T1
@@ -47,9 +57,14 @@ def main():
     #       [1.50388264e-04, 1.16137777e+00, 9.62763826e+01],
     #       [-6.86162290e-08, -2.25772607e-07, 1.00000000e+00]])
 
+    # Faz a transformação das imagens para obter a foto panorâmica usando o métod do OpenCV
     img_stitch = getPanoramicImageWithOpenCV(H, img_input1, img_input2)
     
-    # img_stitch = getPanoramicImage(H, imgInput1, imgInput2)
+    # Faz a transformação das imagens para obter a foto panorâmica
+    # img_stitch = getPanoramicImage(H, img_input1, img_input2)
+    
+
+    # Salva a imagem no diretório de saída (output)
     cv.imwrite("output/"+test_image_folder+"/img_stitch.png", img_stitch)
     
     

@@ -44,11 +44,11 @@ def orb_descriptor(img):
 def matching(imgInput1, imgInput2, alg, output_folder):
     print("Encontrando as correspondências")
     
+    # Converte as imagens para escala de cinza
     imgInput1Gray = cv.cvtColor(imgInput1, cv.COLOR_BGR2GRAY)
     imgInput2Gray = cv.cvtColor(imgInput2, cv.COLOR_BGR2GRAY)
     
     if alg == "sift":
-        
         kp1, des1 = sift_descriptor(imgInput1Gray)
         kp2, des2 = sift_descriptor(imgInput2Gray)
 
@@ -56,16 +56,15 @@ def matching(imgInput1, imgInput2, alg, output_folder):
         matches = bf.match(des1, des2)
         
     elif alg == "orb":
-        
         kp1, des1 = orb_descriptor(imgInput1Gray)
         kp2, des2 = orb_descriptor(imgInput2Gray)
         
         bf = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
         matches = bf.match(des1, des2)
     
-    # Ordena as correpondências pela distância
+    # Ordena as correpondências pela distância para desenha as melhores
     matches = sorted(matches, key = lambda x:x.distance)
-    img = cv.drawMatches(imgInput1Gray, kp1, imgInput2Gray, kp2, matches[:50], None,flags = cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    img = cv.drawMatches(imgInput1, kp1, imgInput2, kp2, matches[:50], None,flags = cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     cv.imwrite("output/"+output_folder+"/matches.png", img)
         
     """
