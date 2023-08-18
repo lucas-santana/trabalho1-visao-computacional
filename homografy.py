@@ -124,12 +124,6 @@ def get_best_homografy(all_query_points, all_train_points):
             print("Encontrou todos pontos!")
             break
     
-        """
-            Queremos a probabilidade p de que pelo menos uma das amostras seja formada por s=4 pontos e nenhum desses 4 seja um outlier
-            p =     probabilidade de só ter inlier
-            1-p =   prob de ter pelo menos 1 outlier em cada amostra
-            E = probabilidade de ser outlier
-        """
         Ei = 1 - (len(inliers)/len(all_query_points)) # proporção de outliers
         if Ei < E:
             E = Ei
@@ -198,28 +192,10 @@ def get_homografy(query_points, train_points):
     H = np.reshape(V[8], (3, 3))
     H = (1/H[2, 2]) * H
     
-    """
-        Alternativa para calcular h, considerando que h  ́e definido a menos de uma escala,
-    
-    # Calcula a matriz A^T A
-    ATA = np.dot(A.T, A)
-
-    # Calcula autovalores e autovetores de ATA
-    autovalores, autovetores = np.linalg.eig(ATA)
-
-    # Encontra o índice do menor autovalor
-    indice_menor_autovalor = np.argmin(autovalores)
-
-    # Obtém o autovetor correspondente ao menor autovalor
-    autovetor_menor_autovalor = autovetores[:, indice_menor_autovalor]
-    
-    H = np.reshape(autovetor_menor_autovalor, (3, 3))
-    """
     
     # Denormalization
     H = denormalize(T1, T2, H)
     
-
     return H
 
 def algebraicDistance(A, H):
@@ -277,49 +253,6 @@ def getTransformationT(points):
     """
     mean_x = np.mean(points[:, 0])
     mean_y = np.mean(points[:, 1])
-    
-    points = points - [mean_x, mean_y]
-
-    # The points are then scaled so that the average distance from the origin is equal to √2.
-    distances = np.linalg.norm(points, axis=1) # distancia de cada ponto até a origem
-    
-    avg_distance = np.average(distances)
-    
-    scale_factor = avg_distance/np.sqrt(2)
-    
-    T = np.array([
-                    [scale_factor, 0, -mean_x],
-                    [0, scale_factor, -mean_y],
-                    [0, 0, 1]
-                ])
-    
-    return T
-
-"""
-    Compute a similarity transformation T, consisting of a translation
-    and scaling, that takes points xi to a new set of points x2i such that the centroid of the
-    points x2i is the coordinate origin (0, 0)T, and their average distance from the origin is
-    √2.
-"""
-
-def normalizeOld(points):
-    T = getTransformationT(points) # matriz 3x3
-    
-    in1 = points # matriz com os 4 pontos da correspondência
-    in2  = np.ones((len(points), 1)) # cria vetor de 1 do mesmo tamanho do numero de pontos
-    homogeneous_points = np.hstack((in1, in2)) # adiciona uma coluna de 1 na matriz de pontos - coordenadas homogênea
-    
-    # Aplica a Transformação em cada ponto
-    for i in range(4):
-        homogeneous_points[i] = np.dot(T, homogeneous_points[i])
-
-    homogeneous_points = homogeneous_points[:, :2] # remover coluna homogenea adicionada
-
-    return homogeneous_points, T
-
-def normalize(points):
-    mean_x = np.mean(points[:, 0])
-    mean_y = np.mean(points[:, 1])
     mean = [mean_x, mean_y]
     
     center_points = points - mean
@@ -333,6 +266,17 @@ def normalize(points):
     T = np.array([[scale_factor, 0, mean[0]],
                   [0, scale_factor, mean[1]],
                   [0, 0, 1]])
+    
+    return T
+
+def normalize(points):
+    """
+        Compute a similarity transformation T, consisting of a translation
+        and scaling, that takes points xi to a new set of points x2i such that the centroid of the
+        points x2i is the coordinate origin (0, 0)T, and their average distance from the origin is
+    √2.
+    """
+    T = getTransformationT(points) # matriz 3x3
     T = np.linalg.inv(T)
     
     n1 = points
