@@ -14,6 +14,10 @@ def create_output_dir(name):
     if not os.path.exists("output/"+name):
         os.makedirs("output/"+name)
 
+def get_files_img_name(folder):
+    file_list = sorted(os.listdir(folder))
+    return file_list[0], file_list[1]
+
 def main():
     """
         Execução do programa com ORB
@@ -25,10 +29,12 @@ def main():
     alg = sys.argv[2] # algoritmo que será usado para detectar as features: orb ou sift
     
     # cria o diretório de saida onde fica as imagens das correspondencias e panoramica
-    create_output_dir(test_image_folder) 
+    create_output_dir(test_image_folder)
+    
+    img1_filename, img2_filename = get_files_img_name("input/"+test_image_folder)
    
-    img_input1 = cv.imread("input/"+test_image_folder+"/img1.jpg")
-    img_input2 = cv.imread("input/"+test_image_folder+"/img2.jpg")
+    img_input1 = cv.imread("input/"+test_image_folder+"/"+img1_filename)
+    img_input2 = cv.imread("input/"+test_image_folder+"/"+img2_filename)
     
     # Encontra as correspondencias    
     points_query, points_train, matches = matching(img_input1, img_input2, alg, test_image_folder)

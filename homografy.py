@@ -18,7 +18,7 @@ def ransac_calc(all_query_points, all_train_points):
         
         # Calcular homografia com todos inliers
         H = get_homografy(best_query_points, best_train_points)
-        
+        calc_erro(all_query_points, all_train_points, H)
         return H
     else:
         print("Homografia com boa quantidade de inliers não encontrada...")
@@ -243,6 +243,19 @@ def geometricDistance(p_query, p_train, H):
     return error
 
 
+def calc_erro(all_query_points, all_train_points, H):
+    """
+        Calcular o erro acumlado de todas as correspondências
+    """
+    erroAcc = 0
+    inliers = []
+    inlier_threshold = np.sqrt(6)
+    for q, t in zip(all_query_points, all_train_points):
+        erroAcc += geometricDistance(q, t, H)
+    print("Erro acumulado da homografia final: ", erroAcc)
+    print("Erro médio: ", erroAcc/len(all_query_points))
+    
+    
 """
     isotropic scaling - pag 107 4.4.4 Normalizing transformations do HARTLEY; ZISSERMAN (2004),
     
